@@ -5,10 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Todo-List App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
-    <dialog class="overlay">
+    <div class="modal overlay">
         <form action="#" class="projectForm">
             <div class="header"><h2>Create a new...</h2></div>
             <div class="sidebar">
@@ -22,11 +23,30 @@
 
             </div>
         </form>
-    </dialog>
+    </div>
 
-    <dialog class="details">
-        
-    </dialog>
+    <div class="modal details">
+        <div class="details_container">
+            <div class="details_title"></div>
+            <div class="detailsGrp">
+                <span>Project:</span>
+                <span class="details_projectValue"></span>
+            </div>
+            <div class="detailsGrp">
+                <span>Priority:</span>
+                <span class="details_priorityValue"></span>
+            </div>
+            <div class="detailsGrp">
+                <span>Due Date:</span>
+                <span class="details_dateValue"></span>
+            </div>
+            <div class="detailsGrp">
+                <span>Description:</span>
+                <span class="details_descriptionValue"></span>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
             <div class="header">Todo List</div>
             <div class="sidebar">
@@ -49,7 +69,5 @@
             </div>
         </div>
     </div>
-
 </body>
-
 </html>
