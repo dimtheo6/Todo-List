@@ -43,7 +43,7 @@ projectForm.addEventListener('submit', (e) => {
         projects[title] = [];
         createFolder();
         projectForm.reset();
-        dialog.close();
+        dialog.classList.remove('active');1;
         selectedFolder();
         console.log(projects)
     } else {
@@ -55,7 +55,7 @@ projectForm.addEventListener('submit', (e) => {
         Project.addTodo(title, description, date, priority);
         populateMain(currentFolder);
         projectForm.reset();
-        dialog.close();
+        dialog.classList.remove('active');1;
     }
 })
 
