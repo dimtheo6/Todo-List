@@ -1,9 +1,9 @@
 import './styles.css';
 import { createFolder,selectedFolder,populateHome,populateToday,populateWeek,populateForm } from './newProject';
 import { projects } from './newProject';
-
-import { projectDelete } from './newProject';
-import { attachDeleteListeners } from './newProject';
+import { populateProject } from './newProject';
+import { currentFolder } from './newProject';
+import { loadStorage } from './newProject';
 
 createFolder();
 selectedFolder();
@@ -15,19 +15,13 @@ const details = document.querySelector('.details')
 const deleteTest = document.querySelectorAll('.delete_folder');
 const folder = document.querySelectorAll('.folder');
 
-
 document.querySelector('.addBtn').addEventListener('click',()=>{
-
-    populateForm();
+    populateProject();
     overlay.classList.add('active');
-    console.log(projects);
 })
-
 
 document.querySelector('.home').addEventListener('click',()=>{
     populateHome();
-
-    
 })
 
 document.querySelector('.today').addEventListener('click',()=>{
@@ -37,8 +31,6 @@ document.querySelector('.today').addEventListener('click',()=>{
 document.querySelector('.week').addEventListener('click',()=>{
     populateWeek();
 })
-
-
 
 window.onclick = function (event) {
     if (event.target == overlay || event.target == details) {

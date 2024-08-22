@@ -34,18 +34,24 @@
     justify-content: center;
     align-items: center;
     text-align: left;
-    height: 30vh;
-    width: 30vw;
-    min-height: 20vh;
-    min-width: 20vw;
+    max-height: 60vh;
+    max-width: 60vw;
+    min-height: 30vh;
+    min-width: 30vw;
     background-color: rgb(226, 223, 223);
     border-radius: 5px;
+    padding: 10px;
 }
 
 .detailsGrp{
     display: flex;
-    align-items: end;
     text-align: left;
+
+}
+
+.details_descriptionValue{
+   
+    word-wrap: break-word;
 }
 
 .details_container div{
@@ -53,6 +59,7 @@
 }
 
 .details_container span{
+    text-align: left;
     width: 9rem;
 }
 .detailsGrp :first-child{
@@ -76,10 +83,6 @@
   
 }
 
-
-
-
-
 ::placeholder{
     font-weight: 2rem;
 }
@@ -94,11 +97,7 @@ form{
     min-width: 40vw;
  }
 
- form .nav{
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
- }
+
  .create_project{
     cursor: pointer;
     font-size: 1.3rem;
@@ -268,6 +267,7 @@ form .header{
 .main{
     display: flex;
     flex-direction: column;
+    
     width: 40vw;
     padding: 30px 100px 30px 100px;
     gap: 20px;
@@ -275,6 +275,7 @@ form .header{
 
 .todo{
     display: flex;
+    position: relative;
     justify-content: space-between;
     align-items: center;
     padding: 5px 30px;
@@ -339,23 +340,30 @@ i:hover{
     background-color: rgb(226, 224, 224);
 }
 
+.nav,.sidebar_folders{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
 
 .sidebar_title{
     font-size: 2rem;
 }
 
+
 .sidebar button{
     display: inline-block;
-    background-color: #04AA6D;
+    background-color: transparent;
     border: none;
-    color: white;
     text-align: center;
-    font-size: 56px;
-    width: 5rem;
-    height: 5rem;
-    border-radius: 50%;
-    margin-left: 1.5rem;
+    font-size: 20px;
+    width: 10rem;
+    height: 2rem;
     cursor: pointer;
+}
+
+.sidebar button:hover{
+    background-color: rgb(208, 211, 211);
 }
 
 .home,.today,.week,.sidebar_container{
@@ -403,7 +411,69 @@ li{
 }
 
 
-.test{
-    width: 50px;
+.add_todo{
+    display: flex;
+    align-items: center;
+    padding-left: 30px;
+    background-color: transparent;
+    text-align: left;
     height: 50px;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    gap: 8px;
+}
+
+.add_todo:hover{
+    background-color: rgb(228, 231, 233);
+}
+
+.add_todo span{
+    font-weight: 900;
+    font-size: 1.5rem;
+    margin-bottom: 3px;
+}
+
+.fileName{
+    font-size: 2.5rem;
+    color: rgb(105, 105, 105);
+    
+}
+
+#submitBtn{
+    border: 1px solid green;
+    color: rgb(2, 168, 2);
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.5s
+}
+
+#submitBtn:hover{
+    background-color: green;
+    color: white; 
+}
+
+.checkbox{
+    height: 50px;
+    color: white;
+    background-color: #02bd3a;
+}
+
+
+
+.todo:has(.checkbox:checked)::before{
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: gray;
+    transform: translateY(-50%);
+    opacity: 0.6;
+}
+
+.todo:has(.checkbox:checked){
+    color: gray;
+    opacity: 0.6;
 }

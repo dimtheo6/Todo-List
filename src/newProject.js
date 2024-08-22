@@ -1,22 +1,43 @@
-import { isToday, parseISO,startOfWeek, endOfWeek, isWithinInterval,format } from "date-fns";
+import { isToday, parseISO, startOfWeek, endOfWeek, isWithinInterval, format } from "date-fns";
 
+const projects = JSON.parse(localStorage.getItem('todos')) || {
+    "Study": [],
+    "Work": []
+}
 
-export const projects = {
-    study: [],
-    work: [],
-    random: []
-};
+function populateStorage() {
+    localStorage.setItem("todos", JSON.stringify(projects));
+}
+
+export function loadStorage() {
+    const storedProjects = localStorage.getItem("todos");
+
+    if (storedProjects) {
+        try {
+            Object.assign(projects, JSON.parse(storedProjects));
+        } catch (error) {
+            console.error("Failed to parse projects from localStorage:", error);
+        }
+    }
+}
 
 const projectForm = document.querySelector('form');
-let currentFolder = "study";
+let currentFolder = Object.keys(projects)[0];
 let folder = 'Todo'
 
 export default class Project {
     constructor(title, description, date, priority) {
         this.title = title;
         this.description = description;
-        this.date = format(new Date(date), 'MMM d');
+        this.date = date;
         this.priority = priority;
+    }
+
+    static isFutureDate(date) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        return new Date(date) > today;
     }
 
     static addTodo(title, description, date, priority) {
@@ -27,10 +48,18 @@ export default class Project {
             return
         }
 
+        // Validate the date
+        if (!this.isFutureDate(date)) {
+            alert("Please Enter a Valid Date.");
+            return;
+        }
+
         const newTodo = new Project(title, description, date, priority);
         currentProject.push(newTodo);
+        populateStorage();
         console.log(projects);
     }
+
 }
 
 projectForm.addEventListener('submit', (e) => {
@@ -41,9 +70,18 @@ projectForm.addEventListener('submit', (e) => {
     if (folder.toLowerCase() === 'project') {
         const title = document.getElementById('title').value;
         projects[title] = [];
+        populateStorage();
         createFolder();
         projectForm.reset();
-        dialog.classList.remove('active');1;
+        dialog.classList.remove('active'); 1;
+
+
+        const folderKeys = Object.keys(projects);
+        if (folderKeys.length === 1) {
+            currentFolder = folderKeys[0];
+
+            console.log(`Current folder set to: ${currentFolder}`);
+        }
         selectedFolder();
         console.log(projects)
     } else {
@@ -55,7 +93,7 @@ projectForm.addEventListener('submit', (e) => {
         Project.addTodo(title, description, date, priority);
         populateMain(currentFolder);
         projectForm.reset();
-        dialog.classList.remove('active');1;
+        dialog.classList.remove('active'); 1;
     }
 })
 
@@ -68,14 +106,21 @@ export function selectedFolder() {
             // Remove 'selected_folder' from all parent elements
             allFolders.forEach(list => {
                 const parent = list.closest('.sidebar_container');
+                const parent2 = list.closest('.home_container');
+
                 if (parent) {
                     parent.classList.remove('selected_folder');
+                } else {
+                    parent2.classList.remove('selected_folder');
                 }
             });
             // Add 'selected_folder' to the clicked element's parent
             const clickedParent = list.closest('.sidebar_container');
+            const clickedParent2 = list.closest('.home_container');
             if (clickedParent) {
                 clickedParent.classList.add('selected_folder');
+            } else {
+                clickedParent2.classList.add('selected_folder');
             }
         });
     });
@@ -83,9 +128,8 @@ export function selectedFolder() {
     ul_list.forEach(list => {
         list.addEventListener('click', () => {
             isHomeView = false;
-            currentFolder = list.innerHTML.trim();
+            currentFolder = list.innerHTML.trim();  // Trim the currentFolder
 
-            // Handle special cases for "Today" and "This Week"
             if (currentFolder === 'Today') {
                 populateToday();
             } else if (currentFolder === 'This Week') {
@@ -94,18 +138,11 @@ export function selectedFolder() {
                 populateMain(currentFolder);
             }
 
-            console.log(`Current folder is ${currentFolder}`)
-        })
+            console.log(`Current folder is ${currentFolder}`);
+        });
     });
 };
 
-const project = new Project('Study Maths', 'gep cock', '2024-08-20', 'low');
-const project2 = new Project('Study Geometry', 'gep cock', '2024-08-30', 'high');
-const project3 = new Project('Banana Geometry', 'gep sec', '2024-08-23', 'high');
-
-projects.study.push(project);
-projects.study.push(project2);
-projects.study.push(project3);
 
 console.log(projects)
 
@@ -119,7 +156,7 @@ export function createFolder() {
 
     Object.keys(projects).forEach(key => {
         const sidebar_container = document.createElement('div');
-        const sidebar_folder = document.createElement('li'); 
+        const sidebar_folder = document.createElement('li');
         const delete_folder = document.createElement('span');
 
         sidebar_container.classList.add('sidebar_container')
@@ -142,6 +179,7 @@ export function populateMain(currentFolder) {
     main.textContent = "";
     const selectedFolder = projects[currentFolder];
     mainDivs(selectedFolder, currentFolder);
+    add_todo()
 }
 
 function mainDivs(folder, currentFolder) {
@@ -160,7 +198,7 @@ function mainDivs(folder, currentFolder) {
         const todo_details = document.createElement('button');
         const left = document.createElement('div');
         const right = document.createElement('div');
-        
+        const checkbox = document.createElement('input');
 
         todo.classList.add('todo');
         todo.classList.add('priority-' + priority);
@@ -174,6 +212,8 @@ function mainDivs(folder, currentFolder) {
         todo_delete.classList.add('fa-trash-can');
         left.classList.add('left_panel');
         right.classList.add('right_panel')
+        checkbox.setAttribute('type', 'checkbox');
+        checkbox.classList.add('checkbox');
 
         todo_title.innerHTML = title;
         todo_date.innerHTML = date;
@@ -183,12 +223,13 @@ function mainDivs(folder, currentFolder) {
         main.appendChild(todo);
         todo.appendChild(left);
         todo.appendChild(right);
+        left.appendChild(checkbox);
         left.appendChild(todo_title);
         right.appendChild(todo_date);
         right.appendChild(todo_details)
         right.appendChild(todo_delete);
 
-        todo_details.addEventListener('click',()=>{
+        todo_details.addEventListener('click', () => {
             const details = document.querySelector('.details');
 
             const detailsTitle = document.querySelector('.details_title')
@@ -208,12 +249,30 @@ function mainDivs(folder, currentFolder) {
 
         todo_delete.addEventListener('click', () => {
             todoDelete(index, currentFolder);
+            populateStorage()
         })
     });
 
-    // const addBtn = document.createElement('button');
-    // addBtn.classList.add('test')
-    // main.appendChild(addBtn);
+
+}
+
+function add_todo() {
+    const main = document.querySelector('.main');
+    const overlay = document.querySelector('.overlay');
+    const add_todo = document.createElement('button');
+
+    add_todo.classList.add('add_todo')
+    add_todo.setAttribute('type', 'button');
+    add_todo.innerHTML = '<span>+</span> Add Task';
+    main.appendChild(add_todo);
+
+    document.querySelector('.add_todo').addEventListener('click', () => {
+        populateForm();
+        overlay.classList.add('active');
+        console.log(projects);
+    })
+
+    folder = 'todo'
 }
 
 let isHomeView = false;
@@ -227,34 +286,20 @@ export function populateHome() {
     Object.keys(projects).forEach(key => {
         mainDivs(projects[key], key);
     });
+
 }
 
 export function populateForm() {
-    const lists = document.querySelectorAll('li[class=create_project]');
     populateTodo();
 
-    lists.forEach(list => {
-        list.addEventListener('click', () => {
-            lists.forEach(list => list.classList.remove('selected'));
-            list.classList.add('selected')
-
-            folder = list.innerHTML;
-
-            console.log(`Current folder is ${folder}`)
-
-            if (folder === 'Todo') {
-                populateTodo();
-            } else if (folder === 'Project') {
-                populateProject();
-            }
-        })
-    });
 }
 
 function populateTodo() {
     const prio = ['low', 'medium', 'high'];
     const content = document.querySelector('.add_content');
+    const sidebar = document.querySelector('.sidebar');
     content.innerHTML = "";
+    sidebar.innerHTML = "";
 
     const title = document.createElement('input');
     const description = document.createElement('textarea');
@@ -265,13 +310,21 @@ function populateTodo() {
     const prioDiv = document.createElement('div');
     const priority = document.createElement('input');
     const button = document.createElement('button');
+    const fileName = document.createElement('div');
 
     title.setAttribute('id', 'title');
+    title.setAttribute('maxlength', '15');
+    title.setAttribute('required', "")
     description.setAttribute('id', 'description');
+    description.setAttribute('maxlength', '100');
     date.setAttribute('id', 'date');
+    date.setAttribute('required', "")
     prioDiv.classList.add('prio_container');
     button.setAttribute('id', 'submitBtn');
     prioWrapper.classList.add('prio_wrapper');
+    fileName.classList.add('fileName');
+
+
 
     title.setAttribute('type', 'text');
     date.setAttribute('type', 'date');
@@ -282,6 +335,7 @@ function populateTodo() {
     description.placeholder = 'Description'
     priority.placeholder = 'Priority'
     dateLabel.innerHTML = 'Due Date: '
+    fileName.innerHTML = 'Todo'
 
     button.innerHTML = 'Submit';
 
@@ -293,6 +347,7 @@ function populateTodo() {
         prioBtn.setAttribute('id', prio[i]);
         prioBtn.setAttribute('name', 'priority');
         prioBtn.setAttribute('value', prio[i]);
+        prioBtn.setAttribute('required', "");
 
         prioLabel.setAttribute('for', prio[i]);
         prioLabel.setAttribute('id', `prio_${prio[i]}`)
@@ -303,7 +358,7 @@ function populateTodo() {
         prioDiv.appendChild(prioBtn);
         prioDiv.appendChild(prioLabel);
     }
-
+    sidebar.appendChild(fileName);
     content.appendChild(title);
     content.appendChild(description);
     content.appendChild(dateDiv);
@@ -314,14 +369,21 @@ function populateTodo() {
     prioWrapper.appendChild(button);
 }
 
-function populateProject() {
+export function populateProject() {
     const content = document.querySelector('.add_content');
+    const sidebar = document.querySelector('.sidebar');
     content.innerHTML = "";
+    sidebar.innerHTML = "";
+
+    const fileName = document.createElement('div')
+    fileName.classList.add('fileName')
 
     const title = document.createElement('input');
     const button = document.createElement('button');
 
     title.setAttribute('id', 'title');
+    title.setAttribute('maxlength', '15');
+    title.setAttribute('required', "");
     button.setAttribute('id', 'submitBtn');
 
     title.setAttribute('type', 'text');
@@ -329,9 +391,13 @@ function populateProject() {
 
     title.placeholder = 'Title...';
     button.innerHTML = 'Create project';
+    fileName.innerHTML = "Project"
 
     content.appendChild(title);
     content.appendChild(button);
+    sidebar.appendChild(fileName)
+
+    folder = 'project'
 }
 
 function todoDelete(index, currentFolder) {
@@ -368,24 +434,26 @@ function todoDelete(index, currentFolder) {
     }
 }
 
-export function projectDelete(key){
+export function projectDelete(key) {
     delete projects[key];
+    populateStorage()
+
 }
 
 export function attachDeleteListeners() {
     const deleteButtons = document.querySelectorAll('.delete_folder');
-    
+
     deleteButtons.forEach(item => {
         item.addEventListener('click', () => {
-            const key = item.previousSibling.innerHTML; 
-            
+            const key = item.previousSibling.innerHTML;
+
             if (confirm(`Are you sure you want to delete the project "${key}"?`)) {
                 const wasCurrentFolder = key === currentFolder; // Check if it's the current folder
-                
-                projectDelete(key); 
-                createFolder();    
+
+                projectDelete(key);
+                createFolder();
                 selectedFolder();
-                
+
                 // If the deleted folder was the current folder, update currentFolder and UI
                 if (wasCurrentFolder) {
                     currentFolder = Object.keys(projects)[0] || ""; // Select the first available folder or clear currentFolder
@@ -456,3 +524,5 @@ export function populateWeek() {
     // Pass thisWeekTodos and 'This Week' to mainDivs
     mainDivs(thisWeekTodos, 'This Week');
 }
+
+loadStorage();
