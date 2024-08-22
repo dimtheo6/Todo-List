@@ -1,4 +1,4 @@
-import { isToday, parseISO, startOfWeek, endOfWeek, isWithinInterval, format } from "date-fns";
+import { isToday, parseISO, startOfWeek, endOfWeek, isWithinInterval, format, sub } from "date-fns";
 
 const projects = JSON.parse(localStorage.getItem('todos')) || {
     "Study": [],
@@ -33,6 +33,7 @@ export default class Project {
         this.priority = priority;
     }
 
+
     static isFutureDate(date) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -40,7 +41,7 @@ export default class Project {
         return new Date(date) > today;
     }
 
-    static addTodo(title, description, date, priority) {
+    static addTodo(title, description, date, priority,index = null) {
         const currentProject = projects[currentFolder];
 
         if (!currentProject) {
@@ -53,11 +54,18 @@ export default class Project {
             alert("Please Enter a Valid Date.");
             return;
         }
+        
 
-        const newTodo = new Project(title, description, date, priority);
-        currentProject.push(newTodo);
+        if (index !== null) {
+            // Update existing todo
+            currentProject[index] = new Project(title, description, date, priority);
+        } else {
+            // Add new todo
+            const newTodo = new Project(title, description, date, priority);
+            currentProject.push(newTodo);
+        }
+
         populateStorage();
-        console.log(projects);
     }
 
 }
@@ -65,7 +73,6 @@ export default class Project {
 projectForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const dialog = document.querySelector('.overlay');
-    console.log(folder);
 
     if (folder.toLowerCase() === 'project') {
         const title = document.getElementById('title').value;
@@ -75,6 +82,7 @@ projectForm.addEventListener('submit', (e) => {
         projectForm.reset();
         dialog.classList.remove('active'); 1;
 
+       
 
         const folderKeys = Object.keys(projects);
         if (folderKeys.length === 1) {
@@ -83,14 +91,16 @@ projectForm.addEventListener('submit', (e) => {
             console.log(`Current folder set to: ${currentFolder}`);
         }
         selectedFolder();
-        console.log(projects)
     } else {
         const title = document.getElementById('title').value;
         const description = document.getElementById('description').value;
         const date = document.getElementById('date').value;
         const priority = document.querySelector(`input[name="priority"]:checked`).value;
 
-        Project.addTodo(title, description, date, priority);
+        const isEdit = document.getElementById('submitBtn').dataset.isEdit === 'true';
+        const index = document.getElementById('submitBtn').dataset.index ? parseInt(document.getElementById('submitBtn').dataset.index) : null;
+    
+        Project.addTodo(title, description, date, priority,index);
         populateMain(currentFolder);
         projectForm.reset();
         dialog.classList.remove('active'); 1;
@@ -143,8 +153,6 @@ export function selectedFolder() {
     });
 };
 
-
-console.log(projects)
 
 export function createFolder() {
     const folder = document.querySelector('.sidebar_folders');
@@ -199,6 +207,7 @@ function mainDivs(folder, currentFolder) {
         const left = document.createElement('div');
         const right = document.createElement('div');
         const checkbox = document.createElement('input');
+        const edit = document.createElement('i');
 
         todo.classList.add('todo');
         todo.classList.add('priority-' + priority);
@@ -214,6 +223,10 @@ function mainDivs(folder, currentFolder) {
         right.classList.add('right_panel')
         checkbox.setAttribute('type', 'checkbox');
         checkbox.classList.add('checkbox');
+        edit.setAttribute('type','button');
+        edit.classList.add('fa-solid');
+        edit.classList.add('fa-pen-to-square');
+        edit.classList.add('editBtn');
 
         todo_title.innerHTML = title;
         todo_date.innerHTML = date;
@@ -227,6 +240,7 @@ function mainDivs(folder, currentFolder) {
         left.appendChild(todo_title);
         right.appendChild(todo_date);
         right.appendChild(todo_details)
+        right.appendChild(edit);
         right.appendChild(todo_delete);
 
         todo_details.addEventListener('click', () => {
@@ -251,10 +265,73 @@ function mainDivs(folder, currentFolder) {
             todoDelete(index, currentFolder);
             populateStorage()
         })
+
+        edit.addEventListener('click',()=>{
+            populateForm();
+            editForm(index,currentFolder); 
+        })
     });
 
 
 }
+
+function editForm(index,currentFolder){
+    const todo = projects[currentFolder][index];
+
+    const overlay = document.querySelector('.overlay');
+    const edit_title = document.getElementById('title');
+    const edit_description = document.getElementById('description');
+    const edit_date = document.getElementById('date');
+
+    const submitBtn = document.getElementById('submitBtn');
+
+    document.getElementById('submitBtn').dataset.index = index;
+    document.getElementById('submitBtn').dataset.isEdit = true;
+    
+
+    edit_title.value = todo.title;
+    edit_description.value = todo.description;
+    edit_date.value = todo.date;
+
+    const priorityRadioButtons = document.querySelectorAll('input[name="priority"]');
+    priorityRadioButtons.forEach(radio => {
+        if (radio.value === todo.priority) {
+            radio.checked = true;
+        }
+    });
+    overlay.classList.add('active')
+
+   
+    submitBtn.innerHTML = "Update";
+    submitBtn.onclick = function (){
+        updateTodo(index,currentFolder)
+    }
+
+    
+}
+
+function updateTodo(index, currentFolder) {
+    const title = document.getElementById('title').value;
+    const description = document.getElementById('description').value;
+    const date = document.getElementById('date').value;
+    const priority = document.querySelector('input[name="priority"]:checked').value;
+
+    if (!Project.isFutureDate(date)) {
+        alert("The date must be today or in the future.");
+        return;
+    }
+
+    // Update the existing todo
+    projects[currentFolder][index] = new Project(title, description, date, priority);
+    populateStorage();
+
+
+    // Close the form
+    const overlay = document.querySelector('.overlay');
+    overlay.classList.remove('active');
+}
+
+
 
 function add_todo() {
     const main = document.querySelector('.main');
@@ -269,7 +346,6 @@ function add_todo() {
     document.querySelector('.add_todo').addEventListener('click', () => {
         populateForm();
         overlay.classList.add('active');
-        console.log(projects);
     })
 
     folder = 'todo'
@@ -524,5 +600,9 @@ export function populateWeek() {
     // Pass thisWeekTodos and 'This Week' to mainDivs
     mainDivs(thisWeekTodos, 'This Week');
 }
+
+
+
+
 
 loadStorage();

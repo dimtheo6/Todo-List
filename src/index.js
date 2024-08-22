@@ -1,9 +1,7 @@
 import './styles.css';
-import { createFolder,selectedFolder,populateHome,populateToday,populateWeek,populateForm } from './newProject';
-import { projects } from './newProject';
-import { populateProject } from './newProject';
-import { currentFolder } from './newProject';
-import { loadStorage } from './newProject';
+import { createFolder,selectedFolder,populateHome,populateToday,populateWeek,populateProject } from './newProject';
+
+
 
 createFolder();
 selectedFolder();
@@ -11,9 +9,6 @@ selectedFolder();
 const overlay = document.querySelector('.overlay');
 const details = document.querySelector('.details')
 
-
-const deleteTest = document.querySelectorAll('.delete_folder');
-const folder = document.querySelectorAll('.folder');
 
 document.querySelector('.addBtn').addEventListener('click',()=>{
     populateProject();
